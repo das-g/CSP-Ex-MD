@@ -14,6 +14,7 @@ from numpy import arange
 from numpy import fmod # C-Like modulo (different from python's %)
 import random
 from numpy import sqrt
+from sys import stdout
 
 # Parameters of the Simulation
 # ============================
@@ -126,7 +127,7 @@ def vv_step(x,v,a,dt,stat,F=FLJ,vScale=conserveVelocities):
 # =============
 
 print "Generating initial particle configuration:"
-print "  * positions ...",
+print "  * positions ...",; stdout.flush()
 x=[]
 while len(x)<N:
     particle = array( [random.uniform(-s2,s2) for d in range(spacedimensions)] )
@@ -139,7 +140,7 @@ while len(x)<N:
 x=array(x)
 print "done"
 
-print "  * velocities ...",
+print "  * velocities ...",; stdout.flush()
 v=[]
 for i in x:
     velocity = array( [random.gauss(0,1) for d in range(spacedimensions)] )
@@ -148,7 +149,7 @@ v=array(v)
 print "done"
 print
 
-print "SIMULATING ...",
+print "SIMULATING ...",; stdout.flush()
 a=array(FLJ(x))
 stat=Statistics()
 for t in arange(0,duration,dt):
