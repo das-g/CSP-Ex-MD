@@ -1,11 +1,10 @@
 #! /usr/bin/env python
 
 # Lennard-Jones Liquid simulation
-# (k) 2008 -- All rites reversed -- copy what you like
-# Raphael Das Gupta ( raphaeld )
+# (c) 2008-2009 Raphael Das Gupta
+# All rites reversed -- copy what you like
 
-# See http://www.complexfluids.ethz.ch/CP/EXERCISES/cpp_LJ_MD.pdf for the task.
-# Not implemented: Obervation of radial pair correlation function and pressure.
+# See http://www.ifb.ethz.ch/education/statisticalphysics/20090508_ex.pdf for the task.
 
 from __future__ import division
 from numpy.linalg import norm
