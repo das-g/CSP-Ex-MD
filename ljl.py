@@ -95,6 +95,10 @@ def currentTemperature(v):
     currentT=mvsq/(3.0*N)
     return currentT
 
+
+def conserveVelocities(v):
+	pass
+
 def temperatureVScale(v):
     #script 6.42
     currentT=currentTemperature(v)    
@@ -105,7 +109,7 @@ def temperatureVScale(v):
     #print "scaled temperature: ", currentTemperature(v)  
 
 
-def vv_step(x,v,a,dt,stat,F=FLJ,vScale=temperatureVScale):
+def vv_step(x,v,a,dt,stat,F=FLJ,vScale=conserveVelocities):
     """
     Do one step of Velocity Verlet integration
     """
