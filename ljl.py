@@ -30,13 +30,6 @@ n = 0.8 # Particle number density, unit particles per sigma^3
 spacedimensions = 3
 minimal_initial_particle_distance = 0.85 # unit sigma
 
-
-# Derived Quantities (all in reduced LJ units)
-# ==================
-V = N/n                    # Volume, unit sigma^3
-s = V**(1/spacedimensions) # Side length of simulation box, unit sigma
-s2 = s/2                   # Box will be [-s2,s2]^spacedimensions, so centered around the origin
-
 def pbc_dist(a,b,halve_box_length):
     """
     returns the distance between a and b
@@ -123,21 +116,29 @@ def vv_step(x,v,a,dt,stat,F=FLJ,vScale=conserveVelocities):
     vScale(v) # eventually rescale velocities
 
 
+def initial_positions(N, n, min_distance, space_dim):
+    V = N/n                    # Volume, unit sigma^spacedimensions
+    s = V**(1/space_dim) # Side length of simulation box, unit sigma
+    s2 = s/2                   # Box will be [-s2,s2]^spacedimensions, so centered around the origin
+    
+    x=[]
+    while len(x)<N:
+        particle = array( [random.uniform(-s2,s2) for d in range(space_dim)] )
+        for other in x:
+            if norm(fmod(particle-other,s2)) <= min_distance:
+                break
+        else:
+            # left for loop without break ==> Particle isn't too near to any other
+            x.append(particle)
+    x=array(x)
+    return x, s2
+
 # Main Program:
 # =============
 
 print "Generating initial particle configuration:"
 print "  * positions ...",; stdout.flush()
-x=[]
-while len(x)<N:
-    particle = array( [random.uniform(-s2,s2) for d in range(spacedimensions)] )
-    for other in x:
-        if norm(fmod(particle-other,s2)) <= minimal_initial_particle_distance:
-            break
-    else:
-        # left for loop without break ==> Particle isn't too near to any other
-        x.append(particle)
-x=array(x)
+x, s2 = initial_positions(N, n, minimal_initial_particle_distance, spacedimensions)
 print "done"
 
 print "  * velocities ...",; stdout.flush()
