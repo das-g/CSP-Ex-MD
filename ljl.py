@@ -26,7 +26,7 @@ N = 100  # Number of Particles
 duration = 1 # unit sigma*sqrt(particle_mass/eps)
 dt = 0.005 # Timestep, unit sigma*sqrt(particle_mass/eps)
 
-n = 0.8 # Particle number density, unit particles per sigma^3
+n = 0.8 # Particle number density, unit particles per sigma^spacedimensions
 spacedimensions = 3
 minimal_initial_particle_distance = 0.85 # unit sigma
 
@@ -83,7 +83,7 @@ def currentTemperature(v):
     #script 6.39
     mvsq=0.0
     for vac in v:      
-	for vcomp in vac:
+        for vcomp in vac:
             mvsq+=vcomp*vcomp
     mvsq/=N
     currentT=mvsq/(3.0*N)
@@ -91,7 +91,7 @@ def currentTemperature(v):
 
 
 def conserveVelocities(v):
-	pass
+     pass
 
 def temperatureVScale(v):
     #script 6.42
