@@ -15,6 +15,7 @@ from numpy import zeros_like
 from numpy import fmod # C-Like modulo (different from python's %)
 import random
 from numpy import sqrt
+import pylab
 from sys import stdout
 
 # Parameters of the Simulation
@@ -23,9 +24,9 @@ from sys import stdout
 # Dimensionless LJ units:
 # sigma, particle_mass and eps are all implicitly 1
 
-N = 100  # Number of Particles
-duration = 1 # unit sigma*sqrt(particle_mass/eps)
-dt = 0.005 # Timestep, unit sigma*sqrt(particle_mass/eps)
+N = 40  # Number of Particles
+duration = 0.01 # unit sigma*sqrt(particle_mass/eps)
+dt = 0.0002 # Timestep, unit sigma*sqrt(particle_mass/eps)
 
 n = 0.6 # Particle number density, unit particles per sigma^spacedimensions
 spacedimensions = 3
@@ -76,6 +77,13 @@ class Statistics:
         self.KE=[] # kinetic energies, unit eps
     def sampleX(self,x):
         self.PE.append(sum([ULJ(norm(x1 - x2)) for x1 in x for x2 in x if not all(x1 == x2)]))
+        pylab.plot(x[:,  0:1], '.')
+        global frame_nr
+        try:
+            frame_nr += 1
+        except NameError:
+            frame_nr = 0
+        pylab.savefig("out/%0*d.png" % (5,frame_nr))
     
     def sampleV(self,v):
         self.KE.append(sum([norm(vel)**2 for vel in v])/2)
@@ -146,7 +154,7 @@ print "  * velocities ...",; stdout.flush()
 v=[]
 for i in x:
     velocity = array( [random.gauss(0,1) for d in range(spacedimensions - 1)] + [0] )
-    v.append(velocity/norm(velocity))
+    v.append(100 * velocity / norm(velocity))
 v=array(v)
 print "done"
 print
