@@ -11,6 +11,7 @@ from numpy.linalg import norm
 from numpy import array
 from numpy import all # for bools in array
 from numpy import arange
+from numpy import zeros_like
 from numpy import fmod # C-Like modulo (different from python's %)
 import random
 from numpy import sqrt
@@ -59,7 +60,7 @@ def FLJ(xlist,rcut=2.5):
     """
     forcelist=[]
     for x in xlist:
-        force = 0
+        force = zeros_like(x)
         for dd in pbc_dist(x,xlist,s2): # traverse directed distance list
             d = norm(dd)
             if d > rcut or d == 0:
