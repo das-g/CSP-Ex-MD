@@ -27,7 +27,7 @@ N = 100  # Number of Particles
 duration = 1 # unit sigma*sqrt(particle_mass/eps)
 dt = 0.005 # Timestep, unit sigma*sqrt(particle_mass/eps)
 
-n = 0.8 # Particle number density, unit particles per sigma^spacedimensions
+n = 0.6 # Particle number density, unit particles per sigma^spacedimensions
 spacedimensions = 3
 minimal_initial_particle_distance = 0.85 # unit sigma
 
@@ -117,14 +117,14 @@ def vv_step(x,v,a,dt,stat,F=FLJ,vScale=conserveVelocities):
     vScale(v) # eventually rescale velocities
 
 
-def initial_positions(N, n, min_distance, space_dim):
-    V = N/n                    # Volume, unit sigma^spacedimensions
-    s = V**(1/space_dim) # Side length of simulation box, unit sigma
-    s2 = s/2                   # Box will be [-s2,s2]^spacedimensions, so centered around the origin
+def initial_positions(N, n, min_distance, space_dim, dont_use_dim = 0):
+    V = N/n                    # Usable volume, unit sigma^(space_dim - dont_use_dim)
+    s = V**(1/(space_dim-dont_use_dim)) # Side length of simulation box, unit sigma
+    s2 = s/2                   # Box will be [-s2,s2]^space_dim, so centered around the origin
     
     x=[]
     while len(x)<N:
-        particle = array( [random.uniform(-s2,s2) for d in range(space_dim)] )
+        particle = array( [random.uniform(-s2,s2) for d in range(space_dim - dont_use_dim)] + [0 for d in range(dont_use_dim)] )
         for other in x:
             if norm(fmod(particle-other,s2)) <= min_distance:
                 break
@@ -139,13 +139,13 @@ def initial_positions(N, n, min_distance, space_dim):
 
 print "Generating initial particle configuration:"
 print "  * positions ...",; stdout.flush()
-x, s2 = initial_positions(N, n, minimal_initial_particle_distance, spacedimensions)
+x, s2 = initial_positions(N, n, minimal_initial_particle_distance, spacedimensions, 1)
 print "done"
 
 print "  * velocities ...",; stdout.flush()
 v=[]
 for i in x:
-    velocity = array( [random.gauss(0,1) for d in range(spacedimensions)] )
+    velocity = array( [random.gauss(0,1) for d in range(spacedimensions - 1)] + [0] )
     v.append(velocity/norm(velocity))
 v=array(v)
 print "done"
