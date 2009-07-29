@@ -12,7 +12,6 @@ from numpy import array
 from numpy import all # for bools in array
 from numpy import arange
 from numpy import zeros_like
-from numpy import fmod # C-Like modulo (different from python's %)
 import random
 from numpy import sqrt
 import pylab
@@ -31,6 +30,9 @@ dt = 0.0002 # Timestep, unit sigma*sqrt(particle_mass/eps)
 n = 0.6 # Particle number density, unit particles per sigma^spacedimensions
 spacedimensions = 3
 minimal_initial_particle_distance = 0.85 # unit sigma
+
+def fmod(numerator,  denominator):
+    return ((numerator + denominator) % (2 * denominator)) - denominator
 
 def pbc_dist(a,b,halve_box_length):
     """
