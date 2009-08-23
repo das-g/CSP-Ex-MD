@@ -78,15 +78,22 @@ class Statistics:
     def __init__(self):
         self.PE=[] # potential energies, unit eps
         self.KE=[] # kinetic energies, unit eps
+    
     def sampleX(self,x):
         self.PE.append(sum([ULJ(norm(x1 - x2)) for x1 in x for x2 in x if not all(x1 == x2)]))
-        pylab.plot(x[:,  0:1], '.')
-        global frame_nr
+        global sample_nr, frame_nr, plot_points
         try:
-            frame_nr += 1
+            if sample_nr%1000 == 0:
+                plot_points.set_xdata(x[:, 0]) # should be more efficiant than creating a new plot
+                plot_points.set_ydata(x[:, 1])
+                frame_nr += 1
+                pylab.savefig("./%0*d.png" % (5,frame_nr))
+            sample_nr += 1
         except NameError:
+            plot_points, = pylab.plot(x[:, 0], x[:,  1], '.')
+            sample_nr = 0
             frame_nr = 0
-        pylab.savefig("out/%0*d.png" % (5,frame_nr))
+            pylab.savefig("./%0*d.png" % (5,frame_nr))
     
     def sampleV(self,v):
         self.KE.append(sum([norm(vel)**2 for vel in v])/2)
