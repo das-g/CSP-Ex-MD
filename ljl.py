@@ -25,12 +25,12 @@ from sys import stdout
 # sigma, particle_mass and eps are all implicitly 1
 
 N = 40  # Number of Particles
-duration = 0.01 # unit sigma*sqrt(particle_mass/eps)
-dt = 0.0002 # Timestep, unit sigma*sqrt(particle_mass/eps)
+duration = 10.0 # unit sigma*sqrt(particle_mass/eps)
+dt = 0.5e-3 # Timestep, unit sigma*sqrt(particle_mass/eps)
 
-n = 0.6 # Particle number density, unit particles per sigma^spacedimensions
+n = 0.95 # Particle number density, unit particles per sigma^spacedimensions
 spacedimensions = 3
-minimal_initial_particle_distance = 0.85 # unit sigma
+#minimal_initial_particle_distance = 0.85 # unit sigma
 
 def fmod(numerator,  denominator):
     return ((numerator + denominator) % (2 * denominator)) - denominator
@@ -168,7 +168,7 @@ print "  * velocities ...",; stdout.flush()
 v=[]
 for i in x:
     velocity = array( [random.gauss(0,1) for d in range(spacedimensions - 1)] + [0] )
-    v.append(100 * velocity / norm(velocity))
+    v.append(0.8 * velocity / norm(velocity))
 v=array(v)
 print "done"
 print
