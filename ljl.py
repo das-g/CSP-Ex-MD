@@ -11,7 +11,8 @@ from numpy.linalg import norm
 from numpy import array
 from numpy import all # for bools in array
 from numpy import arange
-from numpy import zeros_like
+from numpy import zeros_like,  zeros
+from numpy import linspace, indices, ceil, column_stack
 import random
 from numpy import sqrt
 import pylab
@@ -127,7 +128,7 @@ def vv_step(x,v,a,dt,stat,F=FLJ,vScale=conserveVelocities):
     vScale(v) # eventually rescale velocities
 
 
-def initial_positions(N, n, min_distance, space_dim, dont_use_dim = 0):
+def initial_positions_random(N, n, min_distance, space_dim, dont_use_dim = 0):
     V = N/n                    # Usable volume, unit sigma^(space_dim - dont_use_dim)
     s = V**(1/(space_dim-dont_use_dim)) # Side length of simulation box, unit sigma
     s2 = s/2                   # Box will be [-s2,s2]^space_dim, so centered around the origin
@@ -144,12 +145,23 @@ def initial_positions(N, n, min_distance, space_dim, dont_use_dim = 0):
     x=array(x)
     return x, s2
 
+def initial_positions_grid(N,  n,  space_dim,  dont_use_dim = 0):
+    V = N/n                    # Usable volume, unit sigma^(space_dim - dont_use_dim)
+    s = V**(1/(space_dim-dont_use_dim)) # Side length of simulation box, unit sigma
+    s2 = s/2                   # Box will be [-s2,s2]^space_dim, so centered around the origin
+    
+    l = linspace(-s2, s2, num=ceil(N ** (1 / (space_dim - dont_use_dim))), endpoint=False)
+    x = column_stack([l[index].flat for index in indices([len(l) for dim in range(space_dim - dont_use_dim)])])
+    x = column_stack([x,  zeros([x.shape[0], dont_use_dim])])
+    return x, s2
+
 # Main Program:
 # =============
 
 print "Generating initial particle configuration:"
 print "  * positions ...",; stdout.flush()
-x, s2 = initial_positions(N, n, minimal_initial_particle_distance, spacedimensions, 1)
+#x, s2 = initial_positions_random(N, n, minimal_initial_particle_distance, spacedimensions, 1)
+x, s2 = initial_positions_grid(N, n, spacedimensions, 1)
 print "done"
 
 print "  * velocities ...",; stdout.flush()
