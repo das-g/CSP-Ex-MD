@@ -24,7 +24,7 @@ from sys import stdout
 # Dimensionless LJ units:
 # sigma, particle_mass and eps are all implicitly 1
 
-N = 20  # Number of Particles
+N = 13  # Number of Particles
 duration = 500.0 # unit sigma*sqrt(particle_mass/eps)
 dt = 0.5e-2 # Timestep, unit sigma*sqrt(particle_mass/eps)
 
