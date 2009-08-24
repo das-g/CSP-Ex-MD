@@ -171,7 +171,7 @@ friert
 
  dann ein (siehe 
 \family typewriter
-video01.avi
+video01.mpg
 \family default
 ), selbst wenn die Startgeschwindigkeiten auf die flüssige Phase ausgelegt
  sind.
@@ -194,7 +194,7 @@ mit
 \emph default
  Defekten, so bleiben die Teilchen wie erwartet in Bewegung (siehe 
 \family typewriter
-video02.avi
+video02.mpg
 \family default
 ).
  Ich schliesse daraus, dass diejenigen Teilchenanzahlen, für die eine dichteste
@@ -224,7 +224,7 @@ Eine kürzere Simulation mit kleinerem Zeitschritt (
 
 ) ist in 
 \family typewriter
-video03.avi
+video03.mpg
 \family default
  zu sehen.
  Auch bei dieser steigt die kinetische Energie.
