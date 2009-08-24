@@ -159,6 +159,7 @@ def initial_positions_grid(N,  n,  space_dim,  dont_use_dim = 0):
     
     l = linspace(-s2, s2, num=ceil(N ** (1 / (space_dim - dont_use_dim))), endpoint=False)
     x = column_stack([l[index].flat for index in indices([len(l) for dim in range(space_dim - dont_use_dim)])])
+    x = array(random.sample(x, N)) # we rounded up above, so let's only use N of the generated points.
     x = column_stack([x,  zeros([x.shape[0], dont_use_dim])])
     return x, s2
 
