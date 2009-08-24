@@ -32,6 +32,8 @@ n = 0.95 # Particle number density, unit particles per sigma^spacedimensions
 spacedimensions = 3
 #minimal_initial_particle_distance = 0.85 # unit sigma
 
+samples_per_frame = int(0.2 / dt)
+
 def fmod(numerator,  denominator):
     return ((numerator + denominator) % (2 * denominator)) - denominator
 
@@ -83,7 +85,7 @@ class Statistics:
         self.PE.append(sum([ULJ(norm(x1 - x2)) for x1 in x for x2 in x if not all(x1 == x2)]))
         global sample_nr, frame_nr, plot_points
         try:
-            if sample_nr%1000 == 0:
+            if sample_nr % samples_per_frame == 0:
                 plot_points.set_xdata(x[:, 0]) # should be more efficiant than creating a new plot
                 plot_points.set_ydata(x[:, 1])
                 frame_nr += 1
