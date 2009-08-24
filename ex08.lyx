@@ -1,0 +1,256 @@
+#LyX 1.6.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
+\begin_document
+\begin_header
+\textclass article
+\use_default_options false
+\language ngerman
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Computational Statistical Physics, Exercise 8
+\end_layout
+
+\begin_layout Author
+Raphael Das Gupta
+\end_layout
+
+\begin_layout Section*
+Zur Implementierung
+\end_layout
+
+\begin_layout Standard
+Die Simulation wurde in Python (mit dem Numerik-Modul NumPy) geschrieben.
+ Für die graphische Ausgabe verwende ich, wie schon bei den Ising-Aufgaben,
+ matplotlib (a.k.a.
+ pylab).
+ Kern des Programms ist der Velocity-Verlet-Integrator, den ich in der Funktion
+ 
+\family typewriter
+vv_step()
+\family default
+ implementiert habe.
+\end_layout
+
+\begin_layout Subsection*
+Startbedingungen
+\end_layout
+
+\begin_layout Subsubsection*
+Teilchen-Positionen
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+initial_positions_random()
+\family default
+ versucht unter Einhaltung eines Mindestabstands eine gegebene Anzahl Teilchen
+ in einem 
+\begin_inset Formula $d$
+\end_inset
+
+-dimensionalen Raum gegebener Grösse zu platzieren.
+ Da dabei nie Teilchen gelöscht werden (kein Backtracking), terminiert die
+ Funktion nicht immer.
+ Die Wahrscheinlichkeit, in einer Endlosschleife zu landen, hängt hauptsächlich
+ von der verlangten Teilchen-Dichte ab.
+ Ist diese unter einem bestimmten (dimensionsabhängigen) Schwellwert, terminiert
+ die Funktion fast immer in nützlicher Zeit.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+initial_positions_grid()
+\family default
+ platziert die Teilchen stattdessen auf einem kubischen 
+\begin_inset Formula $d$
+\end_inset
+
+-dimensionalen Gitter.
+ Lässt sich die gegebene Teilchenanzahl nicht als 
+\begin_inset Formula $N={N_{\mathrm{Kante}}}^{d},\, N_{\mathrm{Kante}}\in\mathbb{N}$
+\end_inset
+
+ darstellen, werden Gitterplätze freigelassen.
+\end_layout
+
+\begin_layout Standard
+Beide Funktionen können optional eine gegebene Anzahl Dimensionen 
+\begin_inset Quotes eld
+\end_inset
+
+weglassen
+\begin_inset Quotes erd
+\end_inset
+
+.
+ (Die entsprechenden Komponenten werden auf 
+\begin_inset Formula $0$
+\end_inset
+
+ gesetzt.)
+\end_layout
+
+\begin_layout Subsubsection*
+Geschwindigkeiten
+\end_layout
+
+\begin_layout Standard
+Alle Teilchen starten mit derselben Schnelligkeit und uniform zufällig verteilte
+n Bewegungsrichtungen.
+ Das wird durch Normierung von 
+\begin_inset Formula $d$
+\end_inset
+
+-dimensional Gauss-verteilten Vektoren erreicht.
+ (Direkt mit der Gauss-Verteilung zu starten wäre vermutlich physikalischer.)
+\end_layout
+
+\begin_layout Section*
+Resultate
+\end_layout
+
+\begin_layout Subsection*
+Symmetrie durch Anzahl?
+\end_layout
+
+\begin_layout Standard
+Lässt sich die Teilchenanzahl 
+\begin_inset Formula $N$
+\end_inset
+
+ als 
+\begin_inset Formula ${N_{\mathrm{Kante}}}^{d},\, N_{\mathrm{Kante}}\in\mathbb{N}$
+\end_inset
+
+ darstellen, so ordnet sich das System zu einem hexagonalen Gitter um und
+ 
+\begin_inset Quotes eld
+\end_inset
+
+friert
+\begin_inset Quotes erd
+\end_inset
+
+ dann ein (siehe 
+\family typewriter
+video01.avi
+\family default
+), selbst wenn die Startgeschwindigkeiten auf die flüssige Phase ausgelegt
+ sind.
+ Interessanterweise steigt die gemessene kinetische Energie (sowie die Gesamtene
+rgie!) während der Simulation trotzdem an.
+\end_layout
+
+\begin_layout Standard
+Startet man hingegen mit einem 
+\begin_inset Quotes eld
+\end_inset
+
+Kristall
+\begin_inset Quotes erd
+\end_inset
+
+ 
+\emph on
+mit
+\emph default
+ Defekten, so bleiben die Teilchen wie erwartet in Bewegung (siehe 
+\family typewriter
+video02.avi
+\family default
+).
+ Ich schliesse daraus, dass diejenigen Teilchenanzahlen, für die eine dichteste
+ Kugelpackung ein energetisch günstiger Zustand sind, die Finite-Size-Effekte
+ der periodischen Randbedingungen verstärken.
+\end_layout
+
+\begin_layout Subsection*
+Keine Energie-Erhaltung
+\end_layout
+
+\begin_layout Standard
+In all meinen Simulationen stieg die gemessene Gesamtenergie um mehrere
+ Grössenordnungen, was hauptsächlich von der kinetischen Energie verursacht
+ wurde.
+ Seltsamerweise äusserte sich das nicht immer in den aus den Plots der Positione
+n generierten Videos.
+ (Es sah meist nicht so aus, als ob sich die Teilchen mit der Zeit signifikant
+ schneller bewegen würden.) Daher bin ich mir nicht sicher, ob das ausschliesslic
+h an zu grossen Zeitschritten liegt.
+\end_layout
+
+\begin_layout Standard
+Eine kürzere Simulation mit kleinerem Zeitschritt (
+\begin_inset Formula $5\cdot10^{-4}\sigma\sqrt{\frac{m}{\epsilon}}$
+\end_inset
+
+) ist in 
+\family typewriter
+video03.avi
+\family default
+ zu sehen.
+ Auch bei dieser steigt die kinetische Energie.
+ Um den Effekt des Zeitschritts systematisch zu untersuchen, muss ich noch
+ nachsehen, wie man den Python-Zufallsgenerator manuell initialisiert, damit
+ ich mehrmals dieselben Startbedingungen generieren kann.
+\end_layout
+
+\begin_layout Subsection*
+Ungenutzte Dimensionen bleiben ungenutzt
+\end_layout
+
+\begin_layout Standard
+Wenn man die Startpositionen und Startgeschwindigkeiten in einer Ebene wählt,
+ so bleiben die Teilchen (wie zu erwarten) in dieser Ebene.
+ Dies habe ich nur getestet, indem ich die Koordinaten einer Dimension auf
+ 
+\begin_inset Formula $0$
+\end_inset
+
+ gesetzt habe, ich erwarte aber nicht, dass dies bei anderen Werten anders
+ wäre.
+ Interessant wäre es, das mit einer schief im Koordinatensystem liegenden
+ Ebene auszuprobieren, da dann die Effekte von Rundungsfehlern sichtbar
+ werden sollten.
+\end_layout
+
+\end_body
+\end_document
