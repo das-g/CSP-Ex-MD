@@ -15,6 +15,7 @@ from numpy import zeros_like,  zeros
 from numpy import linspace, indices, ceil, column_stack
 import random
 from numpy import sqrt
+from numpy import sum as npsum
 import pylab
 from sys import stdout
 
@@ -98,14 +99,13 @@ class Statistics:
             pylab.savefig("./%0*d.png" % (5,frame_nr))
     
     def sampleV(self,v):
-        self.KE.append(sum([norm(vel)**2 for vel in v])/2)
+        self.KE.append(npsum(v**2)/2)
+        # equivalent to but more efficiant than
+        # self.KE.append(sum([norm(vel)**2 for vel in v])/2)
 
 def currentTemperature(v):
     #script 6.39
-    mvsq=0.0
-    for vac in v:      
-        for vcomp in vac:
-            mvsq+=vcomp*vcomp
+    mvsq=npsum(v**2)
     mvsq/=N
     currentT=mvsq/(3.0*N)
     return currentT
