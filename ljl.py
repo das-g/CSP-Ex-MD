@@ -47,17 +47,17 @@ def pbc_dist(a,b,halve_box_length):
     """
     return fmod(b-a,halve_box_length)
 
-def ULJ(r,rcut=2.5):
+def ULJ(r_squared,rcut=2.5):
     """
     Lennard-Jones Potential
-    for two particles at distance r
+    for two particles at distance r = sqrt(r_squared)
     (cut off at rcut)
     """
-    if r > rcut:
+    if r_squared > rcut**2:
         return 0.0
     else:
         s=-4*(rcut**-12 - rcut**-6)
-        return 4*(r**-12 - r**-6)+s
+        return 4*(r_squared**-6 - r_squared**-3)+s
 
 def FLJ(xlist,rcut=2.5):
     """
@@ -83,7 +83,7 @@ class Statistics:
         self.KE=[] # kinetic energies, unit eps
     
     def sampleX(self,x):
-        self.PE.append(sum([ULJ(norm(x1 - x2)) for x1 in x for x2 in x if not all(x1 == x2)]))
+        self.PE.append(sum([ULJ(sum((x1 - x2)**2)) for x1 in x for x2 in x if not all(x1 == x2)]))
         global sample_nr, frame_nr, plot_points
         try:
             if sample_nr % samples_per_frame == 0:
