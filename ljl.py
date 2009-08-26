@@ -68,8 +68,6 @@ def FLJ(xlist, linked_cells = None, rcut=2.5):
     for a List of coordinates
     """
     forcelist=[]
-    if linked_cells is not None:
-        linked_cells.distribute_positions(xlist) # pack positions into cells
     for x in xlist:
         force = zeros_like(x)
         if linked_cells is None:
@@ -93,7 +91,6 @@ class Statistics:
     def sampleX(self, x, linked_cells = None):
         if linked_cells is not None:
             potential_energy = 0.
-            linked_cells.distribute_positions(x)
             for particle in x:
                 peers = linked_cells.get_near_positions(particle)
                 potential_energy += sum([ULJ(sum((particle - peer)**2))
@@ -149,6 +146,9 @@ def vv_step(x,v,a,dt,stat,linked_cells,F=FLJ,vScale=conserveVelocities):
     Do one step of Velocity Verlet integration
     """
     x = fmod(x + v * dt + 0.5 * dt**2 * a,s2)
+    if linked_cells is not None:
+        # pack positions into cells
+        linked_cells.distribute_positions(x)
     stat.sampleX(x, linked_cells)  # accumulate x-dependent averages
     v += 0.5 * a * dt
     a = array(F(x,linked_cells))
