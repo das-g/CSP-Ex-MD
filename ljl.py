@@ -19,6 +19,8 @@ from numpy import sum as npsum
 import pylab
 from sys import stdout
 
+import cells
+
 # Parameters of the Simulation
 # ============================
 
@@ -59,16 +61,22 @@ def ULJ(r_squared,rcut=2.5):
         s=-4*(rcut**-12 - rcut**-6)
         return 4*(r_squared**-6 - r_squared**-3)+s
 
-def FLJ(xlist,rcut=2.5):
+def FLJ(xlist, linked_cells = None, rcut=2.5):
     """
     Lennard-Jones Force
     returns a list of Forces
     for a List of coordinates
     """
     forcelist=[]
+    if linked_cells is not None:
+        linked_cells.distribute_positions(xlist) # pack positions into cells
     for x in xlist:
         force = zeros_like(x)
-        for dd in pbc_dist(x,xlist,s2): # traverse directed distance list
+        if linked_cells is None:
+            peers = xlist
+        else:
+            peers = linked_cells.get_near_positions(x)
+        for dd in pbc_dist(x, peers, s2): # traverse directed distance list
             d = norm(dd)
             if d > rcut or d == 0:
                 pass
@@ -124,14 +132,14 @@ def temperatureVScale(v):
     #print "scaled temperature: ", currentTemperature(v)  
 
 
-def vv_step(x,v,a,dt,stat,F=FLJ,vScale=conserveVelocities):
+def vv_step(x,v,a,dt,stat,linked_cells,F=FLJ,vScale=conserveVelocities):
     """
     Do one step of Velocity Verlet integration
     """
     x = fmod(x + v * dt + 0.5 * dt**2 * a,s2)
     stat.sampleX(x)  # accumulate x-dependent averages
     v += 0.5 * a * dt
-    a = array(F(x))
+    a = array(F(x,linked_cells))
     v += 0.5 * a * dt
     stat.sampleV(v)  # accumulate v-dependent averages
     vScale(v) # eventually rescale velocities
@@ -186,8 +194,9 @@ print
 print "SIMULATING ...",; stdout.flush()
 a=array(FLJ(x))
 stat=Statistics()
+lcells = cells.Cells(2.5,-s2,s2)
 for t in arange(0,duration,dt):
-    vv_step(x,v,a,dt,stat)
+    vv_step(x,v,a,dt,stat,lcells)
 print "done"
 
 print "Energies:"
