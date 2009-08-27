@@ -1,0 +1,135 @@
+#LyX 1.6.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
+\begin_document
+\begin_header
+\textclass article
+\use_default_options false
+\language ngerman
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Computational Statistical Physics, Exercise 9
+\end_layout
+
+\begin_layout Author
+Raphael Das Gupta
+\end_layout
+
+\begin_layout Section*
+Zur Implementierung
+\end_layout
+
+\begin_layout Standard
+Um das Programm nicht noch unordentlicher zu machen, habe ich die Funktionen
+ für die Linked-Cell-Methode als Methoden einer neuen Klasse 
+\family typewriter
+Cells
+\family default
+ in einem eigenen Modul 
+\family typewriter
+cells
+\family default
+ implementiert.
+\end_layout
+
+\begin_layout Standard
+Ich habe versucht, möglichst viel schon im Konstruktor (Methode 
+\family typewriter
+__init__()
+\family default
+) zu erledigen, sodass ein wiederholter Aufruf rechenintensiver Operationen
+ vermieden werden kann.
+ So lege ich z.B.
+ eine Look-Up-Table für die Indices der Nachbar-Zellen an (analog zur Look-Up-Ta
+ble für Nachbar-Sites bei Ising-Si\SpecialChar \-
+mu\SpecialChar \-
+la\SpecialChar \-
+tionen mit periodischen Randbedingungen).
+\end_layout
+
+\begin_layout Standard
+Das Mapping von den Zellen zu den darin enthaltenen Teilchen wird in einem
+ Python-Dictionary gespeichert, sodass man direkt die 
+\begin_inset Quotes eld
+\end_inset
+
+Koordinaten
+\begin_inset Quotes erd
+\end_inset
+
+ einer Zelle als Key (entspricht dem Index bei Sequenz-Typen) verwenden
+ kann, ohne dass man Speicher für leere Zellen benötigt.
+\end_layout
+
+\begin_layout Section*
+Resultate
+\end_layout
+
+\begin_layout Standard
+Zuerst verwendete ich die Zellen nur bei der Kräfte-Berechnung.
+ Das brachte (bei 2D-Verteilung, 3D-simuliert und Teilchen-Dichte 
+\begin_inset Formula $n=0.95$
+\end_inset
+
+) erst ab einer Teilchenanzahl 
+\begin_inset Formula $N\stackrel{\sim}{>}100$
+\end_inset
+
+ eine kürzere Laufzeit als ohne Verwendung von Linked Cells.
+ Beim Profiling des Scripts wurde ich darauf aufmerksam, dass beim Samplen
+ der potentiellen Energie ebenfalls über alle Teilchen-Paarungen geloopt
+ wird.
+ Nachdem auch dort auf die Cells-Klasse zurückgegriffen wurde, war der Speed-Up
+ einiges besser mess- und fühlbar.
+\end_layout
+
+\begin_layout Standard
+Wie zu erwarten, ist der Speed-Up grösser, wenn die Teilchen-Dichte geringer
+ ist (da dann weniger Teilchen in der jeweiligen Zelle und ihren Nachbarzellen
+ liegen).
+\end_layout
+
+\begin_layout Standard
+Bereits vor der Implementierung von Linked Cells konnte ich die Laufzeit
+ um ca.
+ 9% senken, indem ich die Berechnung von Quadratwurzeln vermied, wenn danach
+ sowieso wieder quadriert (oder mit einer geraden Zahl potenziert) wurde.
+\end_layout
+
+\end_body
+\end_document
