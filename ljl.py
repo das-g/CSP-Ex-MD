@@ -19,15 +19,17 @@ from numpy import sum as npsum
 import pylab
 from sys import stdout
 
+import cells
+
 # Parameters of the Simulation
 # ============================
 
 # Dimensionless LJ units:
 # sigma, particle_mass and eps are all implicitly 1
 
-N = 27  # Number of Particles
-duration = 0.1 # unit sigma*sqrt(particle_mass/eps)
-dt = 0.5e-3 # Timestep, unit sigma*sqrt(particle_mass/eps)
+N = 290  # Number of Particles
+duration = 50.0 # unit sigma*sqrt(particle_mass/eps)
+dt = 0.5e-2 # Timestep, unit sigma*sqrt(particle_mass/eps)
 
 n = 0.95 # Particle number density, unit particles per sigma^spacedimensions
 spacedimensions = 3
@@ -59,7 +61,7 @@ def ULJ(r_squared,rcut=2.5):
         s=-4*(rcut**-12 - rcut**-6)
         return 4*(r_squared**-6 - r_squared**-3)+s
 
-def FLJ(xlist,rcut=2.5):
+def FLJ(xlist, linked_cells = None, rcut=2.5):
     """
     Lennard-Jones Force
     returns a list of Forces
@@ -68,7 +70,11 @@ def FLJ(xlist,rcut=2.5):
     forcelist=[]
     for x in xlist:
         force = zeros_like(x)
-        for dd in pbc_dist(x,xlist,s2): # traverse directed distance list
+        if linked_cells is None:
+            peers = xlist
+        else:
+            peers = linked_cells.get_near_positions(x)
+        for dd in pbc_dist(x, peers, s2): # traverse directed distance list
             d = norm(dd)
             if d > rcut or d == 0:
                 pass
@@ -82,8 +88,19 @@ class Statistics:
         self.PE=[] # potential energies, unit eps
         self.KE=[] # kinetic energies, unit eps
     
-    def sampleX(self,x):
-        self.PE.append(sum([ULJ(sum((x1 - x2)**2)) for x1 in x for x2 in x if not all(x1 == x2)]))
+    def sampleX(self, x, linked_cells = None):
+        if linked_cells is not None:
+            potential_energy = 0.
+            for particle in x:
+                peers = linked_cells.get_near_positions(particle)
+                potential_energy += sum([ULJ(sum((particle - peer)**2))
+                                         for peer in peers
+                                         if not all(particle == peer)])
+            self.PE.append(potential_energy)
+        else:
+            self.PE.append(sum([ULJ(sum((x1 - x2)**2))
+                                for x1 in x for x2 in x
+                                if not all(x1 == x2)]))
         global sample_nr, frame_nr, plot_points
         try:
             if sample_nr % samples_per_frame == 0:
@@ -125,14 +142,17 @@ def temperatureVScale(v):
     return v
 
 
-def vv_step(x,v,a,dt,stat,F=FLJ,vScale=conserveVelocities):
+def vv_step(x,v,a,dt,stat,linked_cells,F=FLJ,vScale=conserveVelocities):
     """
     Do one step of Velocity Verlet integration
     """
     x = fmod(x + v * dt + 0.5 * dt**2 * a,s2)
-    stat.sampleX(x)  # accumulate x-dependent averages
+    if linked_cells is not None:
+        # pack positions into cells
+        linked_cells.distribute_positions(x)
+    stat.sampleX(x, linked_cells)  # accumulate x-dependent averages
     v += 0.5 * a * dt
-    a = array(F(x))
+    a = array(F(x,linked_cells))
     v += 0.5 * a * dt
     stat.sampleV(v)  # accumulate v-dependent averages
     v = vScale(v) # Possibly rescale velocities.
@@ -188,8 +208,9 @@ print
 print "SIMULATING ...",; stdout.flush()
 a=array(FLJ(x))
 stat=Statistics()
+lcells = cells.Cells(2.5,-s2,s2)
 for t in arange(0,duration,dt):
-    x, v, a = vv_step(x,v,a,dt,stat)
+    x, v, a = vv_step(x,v,a,dt,stat,lcells)
 print "done"
 
 print "Energies:"
