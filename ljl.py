@@ -141,7 +141,7 @@ def temperatureVScale(v):
     #print "scaled temperature: ", currentTemperature(v)  
 
 
-def vv_step(x,v,a,dt,stat,linked_cells,F=FLJ,vScale=conserveVelocities):
+def vv_step(x,v,a,dt,stat,linked_cells=None,F=FLJ,vScale=conserveVelocities):
     """
     Do one step of Velocity Verlet integration
     """
