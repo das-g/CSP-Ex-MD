@@ -146,7 +146,7 @@ def vv_step(x,v,a,dt,stat,linked_cells=None,F=FLJ,vScale=conserveVelocities):
     """
     Do one step of Velocity Verlet integration
     """
-    x = fmod(x + v * dt + 0.5 * dt**2 * a,s2)
+    old_x, x = x, fmod(x + v * dt + 0.5 * dt**2 * a,s2)
     if linked_cells is not None:
         # pack positions into cells
         linked_cells.distribute_positions(x)
@@ -156,7 +156,35 @@ def vv_step(x,v,a,dt,stat,linked_cells=None,F=FLJ,vScale=conserveVelocities):
     v += 0.5 * a * dt
     stat.sampleV(v)  # accumulate v-dependent averages
     v = vScale(v) # Possibly rescale velocities.
-    return x, v, a
+    return old_x, x, v, a
+
+
+def bv_step(old_x, x, dt, stat, linked_cells=None, F=FLJ):
+    """
+    Do one step of Basic Verlet integration.
+    Call bv_1st_step() if you don't have an old_x to pass, yet.
+    """
+    if linked_cells is not None:
+        # pack positions into cells
+        linked_cells.distribute_positions(x)
+    # v_estimate would be one step behind, so sample x before it's
+    # updated to get them into sync.
+    stat.sampleX(x, linked_cells)
+    
+    a = array(F(x,linked_cells))
+    # actual verlet step:
+    new_x = fmod(2*x - old_x + a * dt**2,s2)
+    
+    # sample extimated velocities after the update
+    v_estimate = (new_x - old_x) / (2 * dt)
+    stat.sampleV(v_estimate)
+    
+    old_x, x = x, new_x # x is the new old_x!
+    return old_x, x, v_estimate
+
+# The first step of Basic Verlet is exaclty the x-update
+# of Velocity Verlet
+bv_1st_step = vv_step
 
 
 def initial_positions_random(N, n, min_distance, space_dim, dont_use_dim = 0):
@@ -209,8 +237,9 @@ print "SIMULATING ...",; stdout.flush()
 a=array(FLJ(x))
 stat=Statistics()
 lcells = cells.Cells(2.5,-s2,s2)
+old_x, x, v, a = bv_1st_step(x,v,a,dt,stat,lcells)
 for t in arange(0,duration,dt):
-    x, v, a = vv_step(x,v,a,dt,stat,lcells)
+    old_x, x, v = bv_step(old_x, x, dt, stat, lcells)
 print "done"
 
 print "Energies:"
