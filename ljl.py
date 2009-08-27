@@ -1,11 +1,10 @@
 #! /usr/bin/env python
 
 # Lennard-Jones Liquid simulation
-# (k) 2008 -- All rites reversed -- copy what you like
-# Raphael Das Gupta ( raphaeld )
+# (c) 2008-2009 Raphael Das Gupta
+# All rites reversed -- copy what you like
 
-# See http://www.complexfluids.ethz.ch/CP/EXERCISES/cpp_LJ_MD.pdf for the task.
-# Not implemented: Obervation of radial pair correlation function and pressure.
+# See http://www.ifb.ethz.ch/education/statisticalphysics/20090508_ex.pdf for the task.
 
 from __future__ import division
 from numpy.linalg import norm
@@ -18,30 +17,31 @@ from numpy import sqrt
 
 # Parameters of the Simulation
 # ============================
+
+# Dimensionless LJ units:
+# sigma, particle_mass and eps are all implicitly 1
+
 N = 100  # Number of Particles
-duration = 1 # in seconds
-dt = 0.005 # Timestep, in seconds 0.005
+duration = 1 # unit sigma*sqrt(particle_mass/eps)
+dt = 0.005 # Timestep, unit sigma*sqrt(particle_mass/eps)
 
-
-# Dimensionless LJ units and other Constants
-# ==========================================
-n = 0.8 # Particle number density
-# (Temperature and Particle Mass are implicitly 1)
+n = 0.8 # Particle number density, unit particles per sigma^3
 spacedimensions = 3
-minimal_initial_particle_distance = 0.85 # in reduced LJ units
+minimal_initial_particle_distance = 0.85 # unit sigma
 
 
 # Derived Quantities (all in reduced LJ units)
 # ==================
-V = N/n                    # Volume
-s = V**(1/spacedimensions) # Side length of simulation box
-s2 = s/2                   # Box will be [-s2,s2]^spacedimensions
+V = N/n                    # Volume, unit sigma^3
+s = V**(1/spacedimensions) # Side length of simulation box, unit sigma
+s2 = s/2                   # Box will be [-s2,s2]^spacedimensions, so centered around the origin
 
 def pbc_dist(a,b,halve_box_length):
     """
     returns the distance between a and b
     within a origin centered box considering
-    periodic boundary conditions
+    periodic boundary conditions (minimum
+    image convention)
     """
     return fmod(b-a,halve_box_length)
 
@@ -77,8 +77,8 @@ def FLJ(xlist,rcut=2.5):
 
 class Statistics:
     def __init__(self):
-        self.PE=[] # potential energies
-        self.KE=[] # kinetic energies
+        self.PE=[] # potential energies, unit eps
+        self.KE=[] # kinetic energies, unit eps
     def sampleX(self,x):
         self.PE.append(sum([ULJ(norm(x1 - x2)) for x1 in x for x2 in x if not all(x1 == x2)]))
     
@@ -95,6 +95,10 @@ def currentTemperature(v):
     currentT=mvsq/(3.0*N)
     return currentT
 
+
+def conserveVelocities(v):
+    return v
+
 def temperatureVScale(v):
     #script 6.42
     currentT=currentTemperature(v)    
@@ -106,7 +110,7 @@ def temperatureVScale(v):
     return v
 
 
-def vv_step(x,v,a,dt,stat,F=FLJ,vScale=temperatureVScale):
+def vv_step(x,v,a,dt,stat,F=FLJ,vScale=conserveVelocities):
     """
     Do one step of Velocity Verlet integration
     """
