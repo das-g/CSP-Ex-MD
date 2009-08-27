@@ -102,7 +102,8 @@ def temperatureVScale(v):
     v*=scale
     #test
     #print "temperature: ", currentT 
-    #print "scaled temperature: ", currentTemperature(v)  
+    #print "scaled temperature: ", currentTemperature(v)
+    return v
 
 
 def vv_step(x,v,a,dt,stat,F=FLJ,vScale=temperatureVScale):
@@ -115,7 +116,8 @@ def vv_step(x,v,a,dt,stat,F=FLJ,vScale=temperatureVScale):
     a = array(F(x))
     v += 0.5 * a * dt
     stat.sampleV(v)  # accumulate v-dependent averages
-    vScale(v) # eventually rescale velocities
+    v = vScale(v) # Possibly rescale velocities.
+    return x, v, a
 
 
 # Main Program:
@@ -148,7 +150,7 @@ print "SIMULATING ...",
 a=array(FLJ(x))
 stat=Statistics()
 for t in arange(0,duration,dt):
-    vv_step(x,v,a,dt,stat)
+    x, v, a = vv_step(x,v,a,dt,stat)
 print "done"
 
 print "Energies:"
