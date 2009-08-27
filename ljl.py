@@ -27,15 +27,15 @@ import cells
 # Dimensionless LJ units:
 # sigma, particle_mass and eps are all implicitly 1
 
-N = 290  # Number of Particles
-duration = 50.0 # unit sigma*sqrt(particle_mass/eps)
-dt = 0.5e-2 # Timestep, unit sigma*sqrt(particle_mass/eps)
+N = 23  # Number of Particles
+duration = 1.0 # unit sigma*sqrt(particle_mass/eps)
+dt = 0.5e-3 # Timestep, unit sigma*sqrt(particle_mass/eps)
 
 n = 0.95 # Particle number density, unit particles per sigma^spacedimensions
 spacedimensions = 3
 #minimal_initial_particle_distance = 0.85 # unit sigma
 
-samples_per_frame = int(0.2 / dt)
+samples_per_frame = int(0.002 / dt)
 
 def fmod(numerator,  denominator):
     return ((numerator + denominator) % (2 * denominator)) - denominator
