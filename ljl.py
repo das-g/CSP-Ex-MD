@@ -11,9 +11,12 @@ from numpy.linalg import norm
 from numpy import array
 from numpy import all # for bools in array
 from numpy import arange
-from numpy import fmod # C-Like modulo (different from python's %)
+from numpy import zeros_like,  zeros
+from numpy import linspace, indices, ceil, column_stack
 import random
 from numpy import sqrt
+import pylab
+from sys import stdout
 
 # Parameters of the Simulation
 # ============================
@@ -21,20 +24,18 @@ from numpy import sqrt
 # Dimensionless LJ units:
 # sigma, particle_mass and eps are all implicitly 1
 
-N = 100  # Number of Particles
-duration = 1 # unit sigma*sqrt(particle_mass/eps)
-dt = 0.005 # Timestep, unit sigma*sqrt(particle_mass/eps)
+N = 13  # Number of Particles
+duration = 50.0 # unit sigma*sqrt(particle_mass/eps)
+dt = 0.5e-3 # Timestep, unit sigma*sqrt(particle_mass/eps)
 
-n = 0.8 # Particle number density, unit particles per sigma^3
+n = 0.95 # Particle number density, unit particles per sigma^spacedimensions
 spacedimensions = 3
-minimal_initial_particle_distance = 0.85 # unit sigma
+#minimal_initial_particle_distance = 0.85 # unit sigma
 
+samples_per_frame = int(0.2 / dt)
 
-# Derived Quantities (all in reduced LJ units)
-# ==================
-V = N/n                    # Volume, unit sigma^3
-s = V**(1/spacedimensions) # Side length of simulation box, unit sigma
-s2 = s/2                   # Box will be [-s2,s2]^spacedimensions, so centered around the origin
+def fmod(numerator,  denominator):
+    return ((numerator + denominator) % (2 * denominator)) - denominator
 
 def pbc_dist(a,b,halve_box_length):
     """
@@ -65,7 +66,7 @@ def FLJ(xlist,rcut=2.5):
     """
     forcelist=[]
     for x in xlist:
-        force = 0
+        force = zeros_like(x)
         for dd in pbc_dist(x,xlist,s2): # traverse directed distance list
             d = norm(dd)
             if d > rcut or d == 0:
@@ -79,8 +80,22 @@ class Statistics:
     def __init__(self):
         self.PE=[] # potential energies, unit eps
         self.KE=[] # kinetic energies, unit eps
+    
     def sampleX(self,x):
         self.PE.append(sum([ULJ(norm(x1 - x2)) for x1 in x for x2 in x if not all(x1 == x2)]))
+        global sample_nr, frame_nr, plot_points
+        try:
+            if sample_nr % samples_per_frame == 0:
+                plot_points.set_xdata(x[:, 0]) # should be more efficiant than creating a new plot
+                plot_points.set_ydata(x[:, 1])
+                frame_nr += 1
+                pylab.savefig("./%0*d.png" % (5,frame_nr))
+            sample_nr += 1
+        except NameError:
+            plot_points, = pylab.plot(x[:, 0], x[:,  1], '.')
+            sample_nr = 0
+            frame_nr = 0
+            pylab.savefig("./%0*d.png" % (5,frame_nr))
     
     def sampleV(self,v):
         self.KE.append(sum([norm(vel)**2 for vel in v])/2)
@@ -89,7 +104,7 @@ def currentTemperature(v):
     #script 6.39
     mvsq=0.0
     for vac in v:      
-	for vcomp in vac:
+        for vcomp in vac:
             mvsq+=vcomp*vcomp
     mvsq/=N
     currentT=mvsq/(3.0*N)
@@ -124,33 +139,53 @@ def vv_step(x,v,a,dt,stat,F=FLJ,vScale=conserveVelocities):
     return x, v, a
 
 
+def initial_positions_random(N, n, min_distance, space_dim, dont_use_dim = 0):
+    V = N/n                    # Usable volume, unit sigma^(space_dim - dont_use_dim)
+    s = V**(1/(space_dim-dont_use_dim)) # Side length of simulation box, unit sigma
+    s2 = s/2                   # Box will be [-s2,s2]^space_dim, so centered around the origin
+    
+    x=[]
+    while len(x)<N:
+        particle = array( [random.uniform(-s2,s2) for d in range(space_dim - dont_use_dim)] + [0 for d in range(dont_use_dim)] )
+        for other in x:
+            if norm(fmod(particle-other,s2)) <= min_distance:
+                break
+        else:
+            # left for loop without break ==> Particle isn't too near to any other
+            x.append(particle)
+    x=array(x)
+    return x, s2
+
+def initial_positions_grid(N,  n,  space_dim,  dont_use_dim = 0):
+    V = N/n                    # Usable volume, unit sigma^(space_dim - dont_use_dim)
+    s = V**(1/(space_dim-dont_use_dim)) # Side length of simulation box, unit sigma
+    s2 = s/2                   # Box will be [-s2,s2]^space_dim, so centered around the origin
+    
+    l = linspace(-s2, s2, num=ceil(N ** (1 / (space_dim - dont_use_dim))), endpoint=False)
+    x = column_stack([l[index].flat for index in indices([len(l) for dim in range(space_dim - dont_use_dim)])])
+    x = array(random.sample(x, N)) # we rounded up above, so let's only use N of the generated points.
+    x = column_stack([x,  zeros([x.shape[0], dont_use_dim])])
+    return x, s2
+
 # Main Program:
 # =============
 
 print "Generating initial particle configuration:"
-print "  * positions ...",
-x=[]
-while len(x)<N:
-    particle = array( [random.uniform(-s2,s2) for d in range(spacedimensions)] )
-    for other in x:
-        if norm(fmod(particle-other,s2)) <= minimal_initial_particle_distance:
-            break
-    else:
-        # left for loop without break ==> Particle isn't too near to any other
-        x.append(particle)
-x=array(x)
+print "  * positions ...",; stdout.flush()
+#x, s2 = initial_positions_random(N, n, minimal_initial_particle_distance, spacedimensions, 1)
+x, s2 = initial_positions_grid(N, n, spacedimensions, 1)
 print "done"
 
-print "  * velocities ...",
+print "  * velocities ...",; stdout.flush()
 v=[]
 for i in x:
-    velocity = array( [random.gauss(0,1) for d in range(spacedimensions)] )
-    v.append(velocity/norm(velocity))
+    velocity = array( [random.gauss(0,1) for d in range(spacedimensions - 1)] + [0] )
+    v.append(0.8 * velocity / norm(velocity))
 v=array(v)
 print "done"
 print
 
-print "SIMULATING ...",
+print "SIMULATING ...",; stdout.flush()
 a=array(FLJ(x))
 stat=Statistics()
 for t in arange(0,duration,dt):
