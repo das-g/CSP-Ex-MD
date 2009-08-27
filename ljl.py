@@ -129,7 +129,7 @@ def currentTemperature(v):
 
 
 def conserveVelocities(v):
-     pass
+    return v
 
 def temperatureVScale(v):
     #script 6.42
@@ -138,7 +138,8 @@ def temperatureVScale(v):
     v*=scale
     #test
     #print "temperature: ", currentT 
-    #print "scaled temperature: ", currentTemperature(v)  
+    #print "scaled temperature: ", currentTemperature(v)
+    return v
 
 
 def vv_step(x,v,a,dt,stat,linked_cells,F=FLJ,vScale=conserveVelocities):
@@ -154,7 +155,8 @@ def vv_step(x,v,a,dt,stat,linked_cells,F=FLJ,vScale=conserveVelocities):
     a = array(F(x,linked_cells))
     v += 0.5 * a * dt
     stat.sampleV(v)  # accumulate v-dependent averages
-    vScale(v) # eventually rescale velocities
+    v = vScale(v) # Possibly rescale velocities.
+    return x, v, a
 
 
 def initial_positions_random(N, n, min_distance, space_dim, dont_use_dim = 0):
@@ -208,7 +210,7 @@ a=array(FLJ(x))
 stat=Statistics()
 lcells = cells.Cells(2.5,-s2,s2)
 for t in arange(0,duration,dt):
-    vv_step(x,v,a,dt,stat,lcells)
+    x, v, a = vv_step(x,v,a,dt,stat,lcells)
 print "done"
 
 print "Energies:"
