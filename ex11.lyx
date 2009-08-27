@@ -1,0 +1,351 @@
+#LyX 1.6.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
+\begin_document
+\begin_header
+\textclass article
+\use_default_options false
+\language ngerman
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Computational Statistical Physics, Exercise 11
+\end_layout
+
+\begin_layout Author
+Raphael Das Gupta
+\end_layout
+
+\begin_layout Section*
+Zur Implementierung
+\end_layout
+
+\begin_layout Standard
+Da Velocity-Verlet die Annahme zugrunde liegt, dass die Beschleunigung 
+\begin_inset Formula $ $
+\end_inset
+
+
+\begin_inset Formula $\ddot{x}=a(x,t)$
+\end_inset
+
+ nicht von den Geschwindigkeiten 
+\begin_inset Formula $\dot{x}=v$
+\end_inset
+
+ abhängt, habe ich zuerst den Script auf den Basic Verlet-Algorithmus umgestellt.
+ Dabei habe ich festgestellt, dass mein Script bisher die neuen Positionen
+ zwischen den einzelnen Integrationsschritten nicht richtig abgespeichert
+ hat, was die fehlende Energieerhaltung wohl zumindest zum Teil erklärt.
+\begin_inset Float algorithm
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Python und Referenzen
+\begin_inset CommandInset label
+LatexCommand label
+name "alg:Python-und-Referenzen"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout LyX-Code
+#! /usr/bin/env python
+\end_layout
+
+\begin_layout LyX-Code
+# coding=utf-8
+\end_layout
+
+\begin_layout LyX-Code
+ 
+\end_layout
+
+\begin_layout LyX-Code
+from numpy import array
+\end_layout
+
+\begin_layout LyX-Code
+ 
+\end_layout
+
+\begin_layout LyX-Code
+def foonktion(a,b):
+\end_layout
+
+\begin_layout LyX-Code
+    # a und b sind Referenzen.
+ Die referenzierten Objekte werden
+\end_layout
+
+\begin_layout LyX-Code
+    # beim Funktionsaufruf NICHT kopiert.
+ Zuweisungen auf die
+\end_layout
+
+\begin_layout LyX-Code
+    # Referenzen verändern aber nicht die referenzierten Objekte,
+\end_layout
+
+\begin_layout LyX-Code
+    # sondern lassen die Referenzen auf andere (evtl.
+ neue) Objekte
+\end_layout
+
+\begin_layout LyX-Code
+    # zeigen.
+\end_layout
+
+\begin_layout LyX-Code
+    # Zuweisung:
+\end_layout
+
+\begin_layout LyX-Code
+    a = array([1,1,1]) # a Zeigt jetzt auf das neu erzeugte Array
+\end_layout
+
+\begin_layout LyX-Code
+    # Modifikation:
+\end_layout
+
+\begin_layout LyX-Code
+    b[0] = 5           # b wurde kein neues Objekt zugewiesen,
+\end_layout
+
+\begin_layout LyX-Code
+    b[2] = 5           # sondern das von b Referenzierte Objekt wurde
+\end_layout
+
+\begin_layout LyX-Code
+                       # verändert.
+\end_layout
+
+\begin_layout LyX-Code
+    # Wir können aktuellen Referenzen der Aussenwelt per
+\end_layout
+
+\begin_layout LyX-Code
+    # Rückgabewert zeigen
+\end_layout
+
+\begin_layout LyX-Code
+    return a, b
+\end_layout
+
+\begin_layout LyX-Code
+ 
+\end_layout
+
+\begin_layout LyX-Code
+c = array([1,2,3])
+\end_layout
+
+\begin_layout LyX-Code
+d = array([4,5,6])
+\end_layout
+
+\begin_layout LyX-Code
+ 
+\end_layout
+
+\begin_layout LyX-Code
+print c, d          # outputs [1 2 3] [4 5 6]
+\end_layout
+
+\begin_layout LyX-Code
+ 
+\end_layout
+
+\begin_layout LyX-Code
+e,f = foonktion(c,d)
+\end_layout
+
+\begin_layout LyX-Code
+print c, d          # outputs [1 2 3] [5 5 5]
+\end_layout
+
+\begin_layout LyX-Code
+ 
+\end_layout
+
+\begin_layout LyX-Code
+# Die Rückgabewerte:
+\end_layout
+
+\begin_layout LyX-Code
+print e, f          # outputs [1 1 1] [5 5 5]
+\end_layout
+
+\begin_layout LyX-Code
+
+\end_layout
+
+\end_inset
+
+ Das Problem ist in Algorithmus 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "alg:Python-und-Referenzen"
+
+\end_inset
+
+ illustriert: In Python sind alle Variablen, auch Funktions- und Methodenargumen
+te, Referenzen.
+ Bei einer Zuweisung auf die Variable selbst wird jedoch nicht das referenzierte
+ Objekt verändert, sondern die Referenz auf das zugewiesene Objekt umgebogen.
+\end_layout
+
+\begin_layout Standard
+Die Nosé-Hoover-Bewegungsgleichung habe ich versucht ad-hoc in den Basic-Verlet-
+Schritt einzubauen, ohne nochmals die Herleitung durch zu gehen.
+ Ob das Ergebnis korrekt ist, kann ich noch nicht sagen, da ich keine Zeit
+ mehr habe, verschiedene Werte für die 
+\begin_inset Quotes eld
+\end_inset
+
+Trägheit
+\begin_inset Quotes erd
+\end_inset
+
+ 
+\begin_inset Formula $Q$
+\end_inset
+
+ des zusätzlichen Freiheitsgrads auszuprobieren.
+\end_layout
+
+\begin_layout Section*
+Resultate
+\end_layout
+
+\begin_layout Standard
+Nach Beheben des oben erwähnten Fehlers sahen Animationen aus den Plots
+ recht anders aus (siehe 
+\family typewriter
+fixed.mpg
+\family default
+), und die Atome bewegten sich schon bei kleineren Zeitschritten.
+ (Warum sie sich 
+\emph on
+mit
+\emph default
+ dem Fehler überhaupt bewegt haben, ist mit nicht ganz klar.) Die Zusammenstösse
+ wirken viel 
+\begin_inset Quotes eld
+\end_inset
+
+bouncy
+\begin_inset Quotes erd
+\end_inset
+
+er.
+\end_layout
+
+\begin_layout Standard
+Die Energie driften immer noch (nun sinkt sie), allerdings um weniger Grössenord
+nungen:
+\end_layout
+
+\begin_layout LyX-Code
+Generating initial particle configuration:
+\end_layout
+
+\begin_layout LyX-Code
+  * positions ...
+ done
+\end_layout
+
+\begin_layout LyX-Code
+  * velocities ...
+ done
+\end_layout
+
+\begin_layout LyX-Code
+SIMULATING ...
+ done Energies: Potential		Kinetic		Total
+\end_layout
+
+\begin_layout LyX-Code
+[[  -69.48398458     7.87741243   -61.60657215]
+\end_layout
+
+\begin_layout LyX-Code
+ [  -68.39729264     9.68353145   -58.71376119]
+\end_layout
+
+\begin_layout LyX-Code
+ [  -68.79621546    12.51343588   -56.28277958]
+\end_layout
+
+\begin_layout LyX-Code
+ ..., 
+\end_layout
+
+\begin_layout LyX-Code
+ [-1549.60413465   856.29656644  -693.30756821]
+\end_layout
+
+\begin_layout LyX-Code
+ [-1576.97755826   851.54297975  -725.43457851]
+\end_layout
+
+\begin_layout LyX-Code
+ [-1535.38523333   852.72632494  -682.6589084 ]]
+\end_layout
+
+\begin_layout Standard
+(Das ist die Ausgabe des Durchlaufs, der die Plots für 
+\family typewriter
+fixed.mpg
+\family default
+ geliefert hat.)
+\end_layout
+
+\end_body
+\end_document
