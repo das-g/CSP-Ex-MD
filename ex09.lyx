@@ -125,6 +125,16 @@ Wie zu erwarten, ist der Speed-Up grösser, wenn die Teilchen-Dichte geringer
 \end_layout
 
 \begin_layout Standard
+Die Simulations-Ergebnisse sehen zumindest nicht falscher als zuvor aus.
+ (Siehe 
+\family typewriter
+ex09.mpg
+\family default
+ für eine Simulation mit 290 Teilchen.) Energie-Erhaltung ist natürlich nicht
+ magisch hinzugekommen.
+\end_layout
+
+\begin_layout Standard
 Bereits vor der Implementierung von Linked Cells konnte ich die Laufzeit
  um ca.
  9% senken, indem ich die Berechnung von Quadratwurzeln vermied, wenn danach
