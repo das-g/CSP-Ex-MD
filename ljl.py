@@ -27,15 +27,15 @@ import cells
 # Dimensionless LJ units:
 # sigma, particle_mass and eps are all implicitly 1
 
-N = 290  # Number of Particles
-duration = 50.0 # unit sigma*sqrt(particle_mass/eps)
-dt = 0.5e-2 # Timestep, unit sigma*sqrt(particle_mass/eps)
+N = 23  # Number of Particles
+duration = 1.0 # unit sigma*sqrt(particle_mass/eps)
+dt = 0.5e-3 # Timestep, unit sigma*sqrt(particle_mass/eps)
 
 n = 0.95 # Particle number density, unit particles per sigma^spacedimensions
 spacedimensions = 3
 #minimal_initial_particle_distance = 0.85 # unit sigma
 
-samples_per_frame = int(0.2 / dt)
+samples_per_frame = int(0.002 / dt)
 
 def fmod(numerator,  denominator):
     return ((numerator + denominator) % (2 * denominator)) - denominator
@@ -129,7 +129,7 @@ def currentTemperature(v):
 
 
 def conserveVelocities(v):
-     pass
+    return v
 
 def temperatureVScale(v):
     #script 6.42
@@ -138,7 +138,8 @@ def temperatureVScale(v):
     v*=scale
     #test
     #print "temperature: ", currentT 
-    #print "scaled temperature: ", currentTemperature(v)  
+    #print "scaled temperature: ", currentTemperature(v)
+    return v
 
 
 def vv_step(x,v,a,dt,stat,linked_cells=None,F=FLJ,vScale=conserveVelocities):
@@ -154,7 +155,8 @@ def vv_step(x,v,a,dt,stat,linked_cells=None,F=FLJ,vScale=conserveVelocities):
     a = array(F(x,linked_cells))
     v += 0.5 * a * dt
     stat.sampleV(v)  # accumulate v-dependent averages
-    vScale(v) # eventually rescale velocities
+    v = vScale(v) # Possibly rescale velocities.
+    return x, v, a
 
 
 def initial_positions_random(N, n, min_distance, space_dim, dont_use_dim = 0):
@@ -208,7 +210,7 @@ a=array(FLJ(x))
 stat=Statistics()
 lcells = cells.Cells(2.5,-s2,s2)
 for t in arange(0,duration,dt):
-    vv_step(x,v,a,dt,stat,lcells)
+    x, v, a = vv_step(x,v,a,dt,stat,lcells)
 print "done"
 
 print "Energies:"
