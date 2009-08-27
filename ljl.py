@@ -15,6 +15,7 @@ from numpy import zeros_like,  zeros
 from numpy import linspace, indices, ceil, column_stack
 import random
 from numpy import sqrt
+from numpy import sum as npsum
 import pylab
 from sys import stdout
 
@@ -24,8 +25,8 @@ from sys import stdout
 # Dimensionless LJ units:
 # sigma, particle_mass and eps are all implicitly 1
 
-N = 13  # Number of Particles
-duration = 50.0 # unit sigma*sqrt(particle_mass/eps)
+N = 27  # Number of Particles
+duration = 0.1 # unit sigma*sqrt(particle_mass/eps)
 dt = 0.5e-3 # Timestep, unit sigma*sqrt(particle_mass/eps)
 
 n = 0.95 # Particle number density, unit particles per sigma^spacedimensions
@@ -46,17 +47,17 @@ def pbc_dist(a,b,halve_box_length):
     """
     return fmod(b-a,halve_box_length)
 
-def ULJ(r,rcut=2.5):
+def ULJ(r_squared,rcut=2.5):
     """
     Lennard-Jones Potential
-    for two particles at distance r
+    for two particles at distance r = sqrt(r_squared)
     (cut off at rcut)
     """
-    if r > rcut:
+    if r_squared > rcut**2:
         return 0.0
     else:
         s=-4*(rcut**-12 - rcut**-6)
-        return 4*(r**-12 - r**-6)+s
+        return 4*(r_squared**-6 - r_squared**-3)+s
 
 def FLJ(xlist,rcut=2.5):
     """
@@ -82,7 +83,7 @@ class Statistics:
         self.KE=[] # kinetic energies, unit eps
     
     def sampleX(self,x):
-        self.PE.append(sum([ULJ(norm(x1 - x2)) for x1 in x for x2 in x if not all(x1 == x2)]))
+        self.PE.append(sum([ULJ(sum((x1 - x2)**2)) for x1 in x for x2 in x if not all(x1 == x2)]))
         global sample_nr, frame_nr, plot_points
         try:
             if sample_nr % samples_per_frame == 0:
@@ -98,14 +99,13 @@ class Statistics:
             pylab.savefig("./%0*d.png" % (5,frame_nr))
     
     def sampleV(self,v):
-        self.KE.append(sum([norm(vel)**2 for vel in v])/2)
+        self.KE.append(npsum(v**2)/2)
+        # equivalent to but more efficiant than
+        # self.KE.append(sum([norm(vel)**2 for vel in v])/2)
 
 def currentTemperature(v):
     #script 6.39
-    mvsq=0.0
-    for vac in v:      
-        for vcomp in vac:
-            mvsq+=vcomp*vcomp
+    mvsq=npsum(v**2)
     mvsq/=N
     currentT=mvsq/(3.0*N)
     return currentT
