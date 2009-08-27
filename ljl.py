@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# encoding: utf-8
 
 # Lennard-Jones Liquid simulation
 # (c) 2008-2009 Raphael Das Gupta
@@ -28,14 +29,19 @@ import cells
 # sigma, particle_mass and eps are all implicitly 1
 
 N = 23  # Number of Particles
-duration = 1.0 # unit sigma*sqrt(particle_mass/eps)
-dt = 0.5e-3 # Timestep, unit sigma*sqrt(particle_mass/eps)
+duration = 0.01 # unit sigma*sqrt(particle_mass/eps)
+dt = 0.5e-5 # Timestep, unit sigma*sqrt(particle_mass/eps)
 
 n = 0.95 # Particle number density, unit particles per sigma^spacedimensions
 spacedimensions = 3
+T_wanted = 0.001
+Q = 1000.
 #minimal_initial_particle_distance = 0.85 # unit sigma
 
-samples_per_frame = int(0.002 / dt)
+# derived constants
+one_over_Q = 1./Q
+DoF = N * spacedimensions + 1 # one additional for Nosé-Hoover Termostat
+samples_per_frame = 1 #int(0.002 / dt)
 
 def fmod(numerator,  denominator):
     return ((numerator + denominator) % (2 * denominator)) - denominator
@@ -159,7 +165,7 @@ def vv_step(x,v,a,dt,stat,linked_cells=None,F=FLJ,vScale=conserveVelocities):
     return old_x, x, v, a
 
 
-def bv_step(old_x, x, dt, stat, linked_cells=None, F=FLJ):
+def bv_step(old_x, x, dt, stat, xi, linked_cells=None, F=FLJ):
     """
     Do one step of Basic Verlet integration.
     Call bv_1st_step() if you don't have an old_x to pass, yet.
@@ -170,8 +176,8 @@ def bv_step(old_x, x, dt, stat, linked_cells=None, F=FLJ):
     # v_estimate would be one step behind, so sample x before it's
     # updated to get them into sync.
     stat.sampleX(x, linked_cells)
-    
-    a = array(F(x,linked_cells))
+    xi += (npsum(v**2) - DoF * T_wanted) * one_over_Q
+    a = array(F(x,linked_cells)) - xi * v
     # actual verlet step:
     new_x = fmod(2*x - old_x + a * dt**2,s2)
     
@@ -180,7 +186,7 @@ def bv_step(old_x, x, dt, stat, linked_cells=None, F=FLJ):
     stat.sampleV(v_estimate)
     
     old_x, x = x, new_x # x is the new old_x!
-    return old_x, x, v_estimate
+    return old_x, x, v_estimate, xi
 
 # The first step of Basic Verlet is exaclty the x-update
 # of Velocity Verlet
@@ -237,11 +243,16 @@ print "SIMULATING ...",; stdout.flush()
 a=array(FLJ(x))
 stat=Statistics()
 lcells = cells.Cells(2.5,-s2,s2)
+xi = 0. # TODO: what should be the start value?
 old_x, x, v, a = bv_1st_step(x,v,a,dt,stat,lcells)
 for t in arange(0,duration,dt):
-    old_x, x, v = bv_step(old_x, x, dt, stat, lcells)
+    old_x, x, v, xi = bv_step(old_x, x, dt, stat, xi, lcells)
 print "done"
 
 print "Energies:"
 print "Potential\t\tKinetic\t\tTotal"
 print array( [ stat.PE, stat.KE, array(stat.PE)+array(stat.KE) ]).transpose()
+
+## total energy distribution
+#pylab.hist(array(stat.PE) + array(stat.KE))
+#pylab.savefig("energy_distribution.png")
